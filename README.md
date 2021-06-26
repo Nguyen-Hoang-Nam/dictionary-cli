@@ -38,7 +38,7 @@ something (/ˈsəmˌθɪŋ/):
 ### Show only phonetics
 
 ```bash
-$ dictionary-cli something
+$ dictionary-cli something -p
 
 something (/ˈsəmˌθɪŋ/):
 ```
