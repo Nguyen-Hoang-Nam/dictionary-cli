@@ -1,9 +1,20 @@
 mod model;
 mod utils;
 
+use clap::{Arg, App};
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let word = std::env::args().nth(1).expect("Expect word as first argument");
+    let matches = App::new("Dictionary-cli").version("1.1.0")
+        .arg(Arg::with_name("definitions").short("d").long("definitions").help("Show definitons of the word"))
+        .arg(Arg::with_name("phonetics").short("p").long("phonetics").help("Show phonetics of the word"))
+        .arg(Arg::with_name("examples").short("e").long("examples").help("Show  examples of the word"))
+        .arg(Arg::with_name("similars").short("s").long("similars").help("Show  similar words"))
+        .arg(Arg::with_name("INPUT").help("The word that you seek").required(true).index(1))
+        .get_matches();
+
+    // let word = std::env::args().nth(1).expect("Expect word as first argument");
+    let word = matches.value_of("INPUT").unwrap();
     let mut is_cache = false;
     let mut cache_index = 0;
     let mut exist_words = String::new();
@@ -24,11 +35,37 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
+    let mut case = 0;
+
+    let show_definition = matches.occurrences_of("definitions");
+    if show_definition == 1 {
+        case += 1;
+    }
+
+    let show_phonetic = matches.occurrences_of("phonetics");
+    if show_phonetic == 1 {
+        case += 2
+    }
+
+    let show_example = matches.occurrences_of("examples");
+    if show_example == 1 {
+        case += 4
+    }
+
+    let show_similar = matches.occurrences_of("similars");
+    if show_similar == 1 {
+        case += 8
+    }
+
+    if case == 0 {
+        case = 15
+    }
+
     if is_cache {
         let cache = utils::load("api.bin");
         let cache_api: Vec<model::DictionaryAPI> = serde_json::from_str(&cache.to_string())?;
 
-        utils::display_meaning(&cache_api[cache_index]);
+        utils::display_meaning(&cache_api[cache_index], case);
     } else {
         let url = format!("https://api.dictionaryapi.dev/api/v2/entries/en_US/{}", word);
 
@@ -40,7 +77,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let api = res.text().await?;
             let apis: Vec<model::DictionaryAPI> = serde_json::from_str(&api.to_string())?;
 
-            utils::display_meaning(&apis[0]);
+            utils::display_meaning(&apis[0], case);
 
             let cache_api;
 
@@ -60,8 +97,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             println!("No Definitions Found");
         }
     }
-
-    // let api = res.json::<Vec<DictionaryAPI>>().await?;
 
     Ok(())
 }

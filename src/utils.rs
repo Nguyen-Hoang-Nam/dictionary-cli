@@ -67,7 +67,11 @@ pub fn write_color(text: &str, color: termcolor::Color) -> std::io::Result<()> {
     write!(&mut stdout, "{}", text)
 }
 
-pub fn display_meaning(word: &model::DictionaryAPI) {
+fn get_bit_at(input: u8, n: u8) -> bool {
+    input & (1 << n) != 0
+}
+
+pub fn display_meaning(word: &model::DictionaryAPI, case: u8) {
     let mut phonetics = String::new();
     for phonetic in word.phonetics.iter() {
         if phonetics.len() > 0 {
@@ -77,18 +81,63 @@ pub fn display_meaning(word: &model::DictionaryAPI) {
         }
     }
 
-    write_color("\n", termcolor::Color::White).expect("Not show color.");
-    print!("{} (", word.word);
-    write_color(&phonetics, termcolor::Color::Blue).expect("Not show color.");
-    write_color("):\n", termcolor::Color::White).expect("Not show color.");
+    if get_bit_at(case, 1) {
+        write_color("\n", termcolor::Color::White).expect("Not show color.");
+        print!("{} (", word.word);
+        write_color(&phonetics, termcolor::Color::Blue).expect("Not show color.");
+        write_color("):\n", termcolor::Color::White).expect("Not show color.");
+    } else {
+        println!("{}:", word.word);
+    }
 
-    for meanings in word.meanings.iter() {
-        let meaning_str = format!("({})\n", meanings.part_of_speech);
-        write_color(&meaning_str, termcolor::Color::Green).expect("Not show color.");
+    let bit_0 = get_bit_at(case, 0);
+    let bit_2 = get_bit_at(case, 2);
+    let bit_3 = get_bit_at(case, 3);
 
-        for definition in meanings.definitions.iter() {
-            let definition_str = format!("\t_ {}\n\n", definition.definition);
-            write_color(&&definition_str, termcolor::Color::White).expect("Not show color.");
+    if bit_0 || bit_2 || bit_3 {
+        for meanings in word.meanings.iter() {
+            let meaning_str = format!("({})\n", meanings.part_of_speech);
+            write_color(&meaning_str, termcolor::Color::Green).expect("Not show color.");
+
+            for definition in meanings.definitions.iter() {
+                if bit_0 {
+                    let definition_str = format!("\t_ {}\n", definition.definition);
+                    write_color(&&definition_str, termcolor::Color::White)
+                        .expect("Not show color.");
+                }
+
+                if bit_2 {
+                    match &definition.example {
+                        Some(example) => {
+                            let exampe_str = format!("\te.g: {}\n", example);
+                            write_color(&&exampe_str, termcolor::Color::White)
+                                .expect("Not show color.")
+                        }
+                        None => println!(""),
+                    }
+                }
+
+                if bit_3 {
+                    match &definition.synonyms {
+                        Some(synonyms) => {
+                            let mut synonym_str = String::new();
+                            for synonym in synonyms.iter() {
+                                if synonym_str.len() > 0 {
+                                    synonym_str = format!("{}, {}", synonym_str, synonym)
+                                } else {
+                                    synonym_str = format!("{}", synonym)
+                                }
+                            }
+                            synonym_str = format!("\n\tSimilar: {}", synonym_str);
+                            write_color(&&synonym_str, termcolor::Color::White)
+                                .expect("Not show color.")
+                        }
+                        None => println!(""),
+                    }
+                }
+
+                println!("\n");
+            }
         }
     }
 }

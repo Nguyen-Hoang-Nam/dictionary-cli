@@ -8,11 +8,19 @@
 
 ### Manual
 
-You can install manually by downloading a realease, and copying the binary to `~/.local/bin`
+The best way to install is you already have Rust, and you build release with `cargo build --release`, then copying the binary to `~/.local/bin`.
+
+If you want man page when run
+
+```base
+bash man.sh
+```
 
 ## Usage
 
-```shell
+### Show all
+
+```bash
 $ dictionary-cli something
 
 something (/ˈsəmˌθɪŋ/):
@@ -26,6 +34,21 @@ something (/ˈsəmˌθɪŋ/):
 
 	_ Used in various expressions indicating that a description or amount being stated is not exact.
 ```
+
+### Show only phonetics
+
+```bash
+$ dictionary-cli something
+
+something (/ˈsəmˌθɪŋ/):
+```
+
+## TODO
+
+- [ ] Support download sound
+- [ ] Support other dictionary APIs
+- [ ] Config cache file's directory
+- [ ] Support completion for zsh
 
 ## Contributing
 
