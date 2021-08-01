@@ -1,16 +1,42 @@
 mod model;
 mod utils;
 
-use clap::{Arg, App};
+use clap::{App, Arg};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let matches = App::new("Dictionary-cli").version("1.1.0")
-        .arg(Arg::with_name("definitions").short("d").long("definitions").help("Show definitons of the word"))
-        .arg(Arg::with_name("phonetics").short("p").long("phonetics").help("Show phonetics of the word"))
-        .arg(Arg::with_name("examples").short("e").long("examples").help("Show  examples of the word"))
-        .arg(Arg::with_name("similars").short("s").long("similars").help("Show  similar words"))
-        .arg(Arg::with_name("INPUT").help("The word that you seek").required(true).index(1))
+    let matches = App::new("Dictionary-cli")
+        .version("1.1.0")
+        .arg(
+            Arg::with_name("definitions")
+                .short("d")
+                .long("definitions")
+                .help("Show definitons of the word"),
+        )
+        .arg(
+            Arg::with_name("phonetics")
+                .short("p")
+                .long("phonetics")
+                .help("Show phonetics of the word"),
+        )
+        .arg(
+            Arg::with_name("examples")
+                .short("e")
+                .long("examples")
+                .help("Show  examples of the word"),
+        )
+        .arg(
+            Arg::with_name("similars")
+                .short("s")
+                .long("similars")
+                .help("Show  similar words"),
+        )
+        .arg(
+            Arg::with_name("INPUT")
+                .help("The word that you seek")
+                .required(true)
+                .index(1),
+        )
         .get_matches();
 
     // let word = std::env::args().nth(1).expect("Expect word as first argument");
@@ -67,7 +93,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         utils::display_meaning(&cache_api[cache_index], case);
     } else {
-        let url = format!("https://api.dictionaryapi.dev/api/v2/entries/en_US/{}", word);
+        let url = format!(
+            "https://api.dictionaryapi.dev/api/v2/entries/en_US/{}",
+            word
+        );
 
         let client = reqwest::Client::builder().build()?;
         let res = client.get(url).send().await?;
@@ -87,7 +116,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let cache = utils::load("api.bin");
                 cache_api = format!("{},{}", &cache[0..cache.len() - 1], &api[1..api.len()]);
             } else {
-                exist_words = format!("[\"{}\"]", word );
+                exist_words = format!("[\"{}\"]", word);
                 cache_api = format!("{}", &api);
             }
 
