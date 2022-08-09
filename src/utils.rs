@@ -4,8 +4,15 @@ use std::io::Write;
 use termcolor::WriteColor;
 
 fn create_not_exist_path(path: &String) {
+    use colored::Colorize;
     if !std::path::Path::new(&path).exists() {
-        std::fs::create_dir(path).expect("Can not create directory.");
+        std::fs::create_dir(path).unwrap_or_else(|e| {
+            panic!(
+                "Can not create directory at {} due to error {}.",
+                path.magenta(),
+                e.to_string().red()
+            )
+        });
     }
 }
 
@@ -22,21 +29,20 @@ fn cache_path(file_name: &str) -> String {
                 result = format!("{}/{}", path, file_name);
             }
             Err(..) => {
-                let path = format!("$HOME/.dictionary-cli");
+                let path = format!("{}/.dictionary-cli", env::var("HOME").unwrap());
                 create_not_exist_path(&path);
 
                 result = format!("{}/{}", path, file_name)
             }
         }
     } else if os == "windows" {
-        let path = format!("%USERPROFILE\\AppData\\dictionary-cli");
+        let path = "%USERPROFILE\\AppData\\dictionary-cli".to_string();
         create_not_exist_path(&path);
 
         result = format!("{}\\{}", path, file_name)
     } else if os == "macos" {
-        let path = format!("~/Library/Caches/dictionary-cli");
+        let path = "~/Library/Caches/dictionary-cli".to_string();
         create_not_exist_path(&path);
-
         result = format!("{}/{}", path, file_name)
     }
 
@@ -67,17 +73,17 @@ pub fn write_color(text: &str, color: termcolor::Color) -> std::io::Result<()> {
     write!(&mut stdout, "{}", text)
 }
 
-fn get_bit_at(input: u8, n: u8) -> bool {
+const fn get_bit_at(input: u8, n: u8) -> bool {
     input & (1 << n) != 0
 }
 
 pub fn display_meaning(word: &model::DictionaryAPI, case: u8) {
     let mut phonetics = String::new();
     for phonetic in word.phonetics.iter() {
-        if phonetics.len() > 0 {
+        if !phonetics.is_empty() {
             phonetics = format!("{} {}", phonetics, phonetic.text);
         } else {
-            phonetics = format!("{}", phonetic.text);
+            phonetics = phonetic.text.to_string();
         }
     }
 
@@ -102,18 +108,17 @@ pub fn display_meaning(word: &model::DictionaryAPI, case: u8) {
             for definition in meanings.definitions.iter() {
                 if bit_0 {
                     let definition_str = format!("\t_ {}\n", definition.definition);
-                    write_color(&&definition_str, termcolor::Color::White)
-                        .expect("Not show color.");
+                    write_color(&definition_str, termcolor::Color::White).expect("Not show color.");
                 }
 
                 if bit_2 {
-                    match &definition.example {
-                        Some(example) => {
+                    match definition.example {
+                        Some(ref example) => {
                             let exampe_str = format!("\te.g: {}\n", example);
-                            write_color(&&exampe_str, termcolor::Color::White)
+                            write_color(&exampe_str, termcolor::Color::White)
                                 .expect("Not show color.")
                         }
-                        None => println!(""),
+                        None => println!(),
                     }
                 }
 
@@ -122,17 +127,17 @@ pub fn display_meaning(word: &model::DictionaryAPI, case: u8) {
                         Some(synonyms) => {
                             let mut synonym_str = String::new();
                             for synonym in synonyms.iter() {
-                                if synonym_str.len() > 0 {
+                                if !synonym_str.is_empty() {
                                     synonym_str = format!("{}, {}", synonym_str, synonym)
                                 } else {
-                                    synonym_str = format!("{}", synonym)
+                                    synonym_str = synonym.to_string()
                                 }
                             }
                             synonym_str = format!("\n\tSimilar: {}", synonym_str);
-                            write_color(&&synonym_str, termcolor::Color::White)
+                            write_color(&synonym_str, termcolor::Color::White)
                                 .expect("Not show color.")
                         }
-                        None => println!(""),
+                        None => println!(),
                     }
                 }
 
