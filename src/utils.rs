@@ -22,7 +22,7 @@ fn cache_path(file_name: &str) -> String {
                 result = format!("{}/{}", path, file_name);
             }
             Err(..) => {
-                let path = format!("$HOME/.dictionary-cli");
+                let path = format!("{}/.dictionary-cli", env::var("HOME").unwrap());
                 create_not_exist_path(&path);
 
                 result = format!("{}/{}", path, file_name)
