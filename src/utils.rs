@@ -4,8 +4,9 @@ use std::io::Write;
 use termcolor::WriteColor;
 
 fn create_not_exist_path(path: &String) {
+	use colored::Colorize;
     if !std::path::Path::new(&path).exists() {
-        std::fs::create_dir(path).expect("Can not create directory.");
+        std::fs::create_dir(path).unwrap_or_else(|e| panic!("Can not create directory at {} due to error {}.", path.magenta(), e.to_string().red()));
     }
 }
 
