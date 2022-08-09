@@ -1,3 +1,5 @@
+#![warn(clippy::nursery)]
+
 mod model;
 mod utils;
 
@@ -53,7 +55,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let words: Vec<String> = serde_json::from_str(&exist_words.to_string())?;
 
         for (index, item) in words.iter().enumerate() {
-            if item == &word {
+            if item == word {
                 is_cache = true;
                 cache_index = index;
                 break;
@@ -89,7 +91,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     if is_cache {
         let cache = utils::load("api.bin");
-        let cache_api: Vec<model::DictionaryAPI> = serde_json::from_str(&cache.to_string())?;
+        let cache_api: Vec<model::DictionaryAPI> = serde_json::from_str(&cache)?;
 
         utils::display_meaning(&cache_api[cache_index], case);
     } else {
@@ -100,25 +102,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         let client = reqwest::Client::builder().build()?;
         let res = client.get(url).send().await?;
-        let status = format!("{}", res.status()).to_string();
+        let status = format!("{}", res.status());
 
         if status == "200 OK" {
             let api = res.text().await?;
-            let apis: Vec<model::DictionaryAPI> = serde_json::from_str(&api.to_string())?;
+            let apis: Vec<model::DictionaryAPI> = serde_json::from_str(&api)?;
 
             utils::display_meaning(&apis[0], case);
 
-            let cache_api;
-
-            if is_file_exist {
+            let cache_api = if is_file_exist {
                 exist_words = format!("{},\"{}\"]", &exist_words[0..exist_words.len() - 1], word);
 
                 let cache = utils::load("api.bin");
-                cache_api = format!("{},{}", &cache[0..cache.len() - 1], &api[1..api.len()]);
+                format!("{},{}", &cache[0..cache.len() - 1], &api[1..api.len()])
             } else {
                 exist_words = format!("[\"{}\"]", word);
-                cache_api = format!("{}", &api);
-            }
+                api
+            };
 
             utils::save(&exist_words, "words.bin");
             utils::save(&cache_api, "api.bin");
