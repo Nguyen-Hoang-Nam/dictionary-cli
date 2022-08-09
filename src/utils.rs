@@ -4,9 +4,15 @@ use std::io::Write;
 use termcolor::WriteColor;
 
 fn create_not_exist_path(path: &String) {
-	use colored::Colorize;
+    use colored::Colorize;
     if !std::path::Path::new(&path).exists() {
-        std::fs::create_dir(path).unwrap_or_else(|e| panic!("Can not create directory at {} due to error {}.", path.magenta(), e.to_string().red()));
+        std::fs::create_dir(path).unwrap_or_else(|e| {
+            panic!(
+                "Can not create directory at {} due to error {}.",
+                path.magenta(),
+                e.to_string().red()
+            )
+        });
     }
 }
 
@@ -102,8 +108,7 @@ pub fn display_meaning(word: &model::DictionaryAPI, case: u8) {
             for definition in meanings.definitions.iter() {
                 if bit_0 {
                     let definition_str = format!("\t_ {}\n", definition.definition);
-                    write_color(&definition_str, termcolor::Color::White)
-                        .expect("Not show color.");
+                    write_color(&definition_str, termcolor::Color::White).expect("Not show color.");
                 }
 
                 if bit_2 {
