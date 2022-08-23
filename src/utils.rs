@@ -1,3 +1,4 @@
+extern crate dirs;
 use crate::model;
 use std::env;
 use std::io::Write;
@@ -41,10 +42,9 @@ fn cache_path(file_name: &str) -> String {
 
         result = format!("{}\\{}", path, file_name)
     } else if os == "macos" {
-        let path = format!(
-            "{}/{}", 
-            std::env::home_dir().expect("No home dir").display().to_string(),
-            "Library/Caches/dictionary-cli".to_string()
+        let path = format!("{}/{}",
+            dirs::cache_dir().expect("Cache dir not found").display().to_string(),
+            "dictionary_cli".to_string()
         );
         create_not_exist_path(&path);
         result = format!("{}/{}", path, file_name)
