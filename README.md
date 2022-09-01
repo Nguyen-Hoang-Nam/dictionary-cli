@@ -2,7 +2,7 @@
 
 📖 Find definition of words in terminal
 
-![Main](https://raw.githubusercontent.com/Nguyen-Hoang-Nam/dictionary-cli/main/img/screenshot.png)
+![Main](https://raw.githubusercontent.com/Nguyen-Hoang-Nam/readme-image/main/dictionary-cli/dictionary-cli.png)
 
 ## Installation
 
