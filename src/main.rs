@@ -11,25 +11,25 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .version("1.1.0")
         .arg(
             Arg::with_name("definitions")
-                .short("d")
+                .short('d')
                 .long("definitions")
                 .help("Show definitons of the word"),
         )
         .arg(
             Arg::with_name("phonetics")
-                .short("p")
+                .short('p')
                 .long("phonetics")
                 .help("Show phonetics of the word"),
         )
         .arg(
             Arg::with_name("examples")
-                .short("e")
+                .short('e')
                 .long("examples")
                 .help("Show  examples of the word"),
         )
         .arg(
             Arg::with_name("similars")
-                .short("s")
+                .short('s')
                 .long("similars")
                 .help("Show  similar words"),
         )
