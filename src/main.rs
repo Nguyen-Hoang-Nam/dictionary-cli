@@ -2,9 +2,9 @@
 
 mod api;
 mod cache;
+mod display;
 mod error;
 mod model;
-mod utils;
 
 use clap::{App, Arg};
 
@@ -31,10 +31,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .help("Show examples of the word"),
         )
         .arg(
-            Arg::with_name("similars")
+            Arg::with_name("synonyms")
                 .short('s')
-                .long("similars")
-                .help("Show similar words"),
+                .long("synonyms")
+                .help("Show synonym words"),
+        )
+        .arg(
+            Arg::with_name("antonyms")
+                .short('a')
+                .long("antonyms")
+                .help("Show antonym words"),
         )
         .arg(
             Arg::with_name("force")
@@ -44,7 +50,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         )
         .arg(
             Arg::with_name("api")
-                .short('a')
                 .long("api")
                 .help("free | oxford | google")
                 .takes_value(true),
@@ -77,8 +82,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         case
     };
 
-    let case = if matches.occurrences_of("similars") == 1 {
+    let case = if matches.occurrences_of("synonyms") == 1 {
         case + 8
+    } else {
+        case
+    };
+
+    let case = if matches.occurrences_of("antonyms") == 1 {
+        case + 16
     } else {
         case
     };
@@ -116,12 +127,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let cache = cache::load("api.bin");
         let cache_api: Vec<model::DictionaryAPI> = serde_json::from_str(&cache)?;
 
-        utils::display(&cache_api[cache_index], case);
+        display::display(&cache_api[cache_index], case);
     } else {
         let body: String = api::call(word, api).await?;
         let apis: Vec<model::DictionaryAPI> = serde_json::from_str(&body)?;
 
-        utils::display(&apis[0], case);
+        display::display(&apis[0], case);
 
         let cache_api = if is_file_exist {
             exist_words = format!("{},\"{}\"]", &exist_words[0..exist_words.len() - 1], word);
