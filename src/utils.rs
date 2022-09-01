@@ -1,75 +1,6 @@
-extern crate dirs;
 use crate::model;
-use std::env;
 use std::io::Write;
 use termcolor::WriteColor;
-
-fn create_not_exist_path(path: &String) {
-    use colored::Colorize;
-    if !std::path::Path::new(&path).exists() {
-        std::fs::create_dir(path).unwrap_or_else(|e| {
-            panic!(
-                "Can not create directory at {} due to error {}.",
-                path.magenta(),
-                e.to_string().red()
-            )
-        });
-    }
-}
-
-fn cache_path(file_name: &str) -> String {
-    let os = env::consts::OS;
-    let mut result = String::new();
-
-    if os == "linux" {
-        match env::var("XDG_CACHE_HOME") {
-            Ok(cache_directory) => {
-                let path = format!("{}/dictionary-cli", cache_directory);
-                create_not_exist_path(&path);
-
-                result = format!("{}/{}", path, file_name);
-            }
-            Err(..) => {
-                let path = format!("{}/.dictionary-cli", env::var("HOME").unwrap());
-                create_not_exist_path(&path);
-
-                result = format!("{}/{}", path, file_name)
-            }
-        }
-    } else if os == "windows" {
-        let path = "%USERPROFILE\\AppData\\dictionary-cli".to_string();
-        create_not_exist_path(&path);
-
-        result = format!("{}\\{}", path, file_name)
-    } else if os == "macos" {
-        let path = format!("{}/{}",
-            dirs::cache_dir().expect("Cache dir not found").display().to_string(),
-            "dictionary_cli".to_string()
-        );
-        create_not_exist_path(&path);
-        result = format!("{}/{}", path, file_name)
-    }
-
-    result
-}
-
-pub fn check_file_exist(file_name: &str) -> bool {
-    let file_path = cache_path(file_name);
-
-    std::path::Path::new(&file_path).exists()
-}
-
-pub fn save(dictionary_api: &String, file_name: &str) {
-    let file_path = cache_path(file_name);
-
-    savefile::prelude::save_file(&file_path, 0, dictionary_api).unwrap();
-}
-
-pub fn load(file_name: &str) -> String {
-    let file_path = cache_path(file_name);
-
-    savefile::prelude::load_file(&file_path, 0).unwrap()
-}
 
 pub fn write_color(text: &str, color: termcolor::Color) -> std::io::Result<()> {
     let mut stdout = termcolor::StandardStream::stdout(termcolor::ColorChoice::Always);
@@ -81,7 +12,7 @@ const fn get_bit_at(input: u8, n: u8) -> bool {
     input & (1 << n) != 0
 }
 
-pub fn display_meaning(word: &model::DictionaryAPI, case: u8) {
+pub fn display(word: &model::DictionaryAPI, case: u8) {
     let mut phonetics = String::new();
     for phonetic in word.phonetics.iter() {
         if !phonetics.is_empty() {
@@ -118,11 +49,11 @@ pub fn display_meaning(word: &model::DictionaryAPI, case: u8) {
                 if bit_2 {
                     match definition.example {
                         Some(ref example) => {
-                            let exampe_str = format!("\te.g: {}\n", example);
+                            let exampe_str = format!("\n\te.g: {}\n", example);
                             write_color(&exampe_str, termcolor::Color::White)
                                 .expect("Not show color.")
                         }
-                        None => println!(),
+                        None => print!(""),
                     }
                 }
 
@@ -137,16 +68,35 @@ pub fn display_meaning(word: &model::DictionaryAPI, case: u8) {
                                     synonym_str = synonym.to_string()
                                 }
                             }
-                            synonym_str = format!("\n\tSimilar: {}", synonym_str);
-                            write_color(&synonym_str, termcolor::Color::White)
-                                .expect("Not show color.")
+                            if synonym_str.len() > 0 {
+                                write_color("\n\tSimilar: ", termcolor::Color::Yellow)
+                                    .expect("Not show color.");
+                                synonym_str = format!("{} \n", synonym_str);
+                                write_color(&synonym_str, termcolor::Color::White)
+                                    .expect("Not show color.")
+                            }
                         }
-                        None => println!(),
+                        None => print!(""),
                     }
                 }
 
-                println!("\n");
+                println!("");
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_get_bit_at_1() {
+        assert_eq!(true, get_bit_at(1, 0));
+    }
+
+    #[test]
+    fn test_get_bit_at_2() {
+        assert_eq!(false, get_bit_at(1, 1));
     }
 }

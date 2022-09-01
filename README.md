@@ -1,18 +1,18 @@
 # Dictionary-CLI
 
-📖 Find definition of words in terminal
+Find definition of words in terminal
 
 ![Main](https://raw.githubusercontent.com/Nguyen-Hoang-Nam/readme-image/main/dictionary-cli/dictionary-cli.png)
 
 ## Installation
 
-```bash
+```text
 $ cargo install --git https://github.com/Nguyen-Hoang-Nam/dictionary-cli
 ```
 
 If you want man page when run
 
-```base
+```text
 bash man.sh
 ```
 
@@ -20,7 +20,7 @@ bash man.sh
 
 ### Show all
 
-```bash
+```text
 $ dictionary-cli something
 
 something (/ˈsəmˌθɪŋ/):
@@ -37,7 +37,7 @@ something (/ˈsəmˌθɪŋ/):
 
 ### Show only phonetics
 
-```bash
+```text
 $ dictionary-cli something -p
 
 something (/ˈsəmˌθɪŋ/):

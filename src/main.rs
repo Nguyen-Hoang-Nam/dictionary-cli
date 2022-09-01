@@ -1,5 +1,8 @@
 #![warn(clippy::nursery)]
 
+mod api;
+mod cache;
+mod error;
 mod model;
 mod utils;
 
@@ -8,7 +11,7 @@ use clap::{App, Arg};
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let matches = App::new("Dictionary-cli")
-        .version("1.1.0")
+        .version("1.2.0")
         .arg(
             Arg::with_name("definitions")
                 .short('d')
@@ -25,13 +28,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             Arg::with_name("examples")
                 .short('e')
                 .long("examples")
-                .help("Show  examples of the word"),
+                .help("Show examples of the word"),
         )
         .arg(
             Arg::with_name("similars")
                 .short('s')
                 .long("similars")
-                .help("Show  similar words"),
+                .help("Show similar words"),
+        )
+        .arg(
+            Arg::with_name("api")
+                .short('a')
+                .long("api")
+                .help("free | oxford | google")
+                .takes_value(true),
         )
         .arg(
             Arg::with_name("INPUT")
@@ -41,17 +51,46 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         )
         .get_matches();
 
-    // let word = std::env::args().nth(1).expect("Expect word as first argument");
+    let case = 0;
+
+    let case = if matches.occurrences_of("definitions") == 1 {
+        case + 1
+    } else {
+        case
+    };
+
+    let case = if matches.occurrences_of("phonetics") == 1 {
+        case + 2
+    } else {
+        case
+    };
+
+    let case = if matches.occurrences_of("examples") == 1 {
+        case + 4
+    } else {
+        case
+    };
+
+    let case = if matches.occurrences_of("similars") == 1 {
+        case + 8
+    } else {
+        case
+    };
+
+    let case = if case == 0 { 15 } else { case };
+
+    let api = api::to_enum(matches.value_of("api").unwrap_or_else(|| ""));
+
     let word = matches.value_of("INPUT").unwrap();
     let mut is_cache = false;
     let mut cache_index = 0;
     let mut exist_words = String::new();
     let mut is_file_exist = false;
 
-    if utils::check_file_exist("words.bin") {
+    if cache::check_file_exist("words.bin") {
         is_file_exist = true;
 
-        exist_words = utils::load("words.bin");
+        exist_words = cache::load("words.bin");
         let words: Vec<String> = serde_json::from_str(&exist_words.to_string())?;
 
         for (index, item) in words.iter().enumerate() {
@@ -63,68 +102,29 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    let mut case = 0;
-
-    let show_definition = matches.occurrences_of("definitions");
-    if show_definition == 1 {
-        case += 1;
-    }
-
-    let show_phonetic = matches.occurrences_of("phonetics");
-    if show_phonetic == 1 {
-        case += 2
-    }
-
-    let show_example = matches.occurrences_of("examples");
-    if show_example == 1 {
-        case += 4
-    }
-
-    let show_similar = matches.occurrences_of("similars");
-    if show_similar == 1 {
-        case += 8
-    }
-
-    if case == 0 {
-        case = 15
-    }
-
     if is_cache {
-        let cache = utils::load("api.bin");
+        let cache = cache::load("api.bin");
         let cache_api: Vec<model::DictionaryAPI> = serde_json::from_str(&cache)?;
 
-        utils::display_meaning(&cache_api[cache_index], case);
+        utils::display(&cache_api[cache_index], case);
     } else {
-        let url = format!(
-            "https://api.dictionaryapi.dev/api/v2/entries/en_US/{}",
-            word
-        );
+        let body: String = api::call(word, api).await?;
+        let apis: Vec<model::DictionaryAPI> = serde_json::from_str(&body)?;
 
-        let client = reqwest::Client::builder().build()?;
-        let res = client.get(url).send().await?;
-        let status = format!("{}", res.status());
+        utils::display(&apis[0], case);
 
-        if status == "200 OK" {
-            let api = res.text().await?;
-            let apis: Vec<model::DictionaryAPI> = serde_json::from_str(&api)?;
+        let cache_api = if is_file_exist {
+            exist_words = format!("{},\"{}\"]", &exist_words[0..exist_words.len() - 1], word);
 
-            utils::display_meaning(&apis[0], case);
-
-            let cache_api = if is_file_exist {
-                exist_words = format!("{},\"{}\"]", &exist_words[0..exist_words.len() - 1], word);
-
-                let cache = utils::load("api.bin");
-                format!("{},{}", &cache[0..cache.len() - 1], &api[1..api.len()])
-            } else {
-                exist_words = format!("[\"{}\"]", word);
-                api
-            };
-
-            utils::save(&exist_words, "words.bin");
-            utils::save(&cache_api, "api.bin");
+            let cache = cache::load("api.bin");
+            format!("{},{}", &cache[0..cache.len() - 1], &body[1..body.len()])
         } else {
-            println!("No Definitions Found");
-        }
+            exist_words = format!("[\"{}\"]", word);
+            body
+        };
+
+        cache::save(&exist_words, "words.bin");
+        cache::save(&cache_api, "api.bin");
     }
 
     Ok(())

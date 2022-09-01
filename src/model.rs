@@ -25,3 +25,9 @@ pub struct DictionaryAPI {
     pub phonetics: Vec<Phonetics>,
     pub meanings: Vec<Meanings>,
 }
+
+pub enum Api {
+    Free,
+    Oxford,
+    Google,
+}
