@@ -37,6 +37,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .help("Show similar words"),
         )
         .arg(
+            Arg::with_name("force")
+                .short('f')
+                .long("force")
+                .help("Force find word in web instead of cache"),
+        )
+        .arg(
             Arg::with_name("api")
                 .short('a')
                 .long("api")
@@ -79,6 +85,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let case = if case == 0 { 15 } else { case };
 
+    let force = matches.occurrences_of("force") == 1;
     let api = api::to_enum(matches.value_of("api").unwrap_or_else(|| ""));
 
     let word = matches.value_of("INPUT").unwrap();
@@ -91,18 +98,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         is_file_exist = true;
 
         exist_words = cache::load("words.bin");
-        let words: Vec<String> = serde_json::from_str(&exist_words.to_string())?;
 
-        for (index, item) in words.iter().enumerate() {
-            if item == word {
-                is_cache = true;
-                cache_index = index;
-                break;
+        if !force {
+            let words: Vec<String> = serde_json::from_str(&exist_words.to_string())?;
+
+            for (index, item) in words.iter().enumerate() {
+                if item == word {
+                    is_cache = true;
+                    cache_index = index;
+                    break;
+                }
             }
         }
     }
 
-    if is_cache {
+    if !force && is_cache {
         let cache = cache::load("api.bin");
         let cache_api: Vec<model::DictionaryAPI> = serde_json::from_str(&cache)?;
 
