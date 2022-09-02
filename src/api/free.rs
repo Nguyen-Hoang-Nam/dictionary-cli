@@ -1,3 +1,6 @@
+pub mod display;
+pub mod model;
+
 use crate::error;
 
 const ORIGIN: &str = "https://api.dictionaryapi.dev/api/v2/entries/en_US";

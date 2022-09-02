@@ -1,10 +1,9 @@
-#![warn(clippy::nursery)]
-
 mod api;
 mod cache;
 mod display;
 mod error;
 mod model;
+mod utils;
 
 use clap::{App, Arg};
 
@@ -56,7 +55,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         )
         .arg(
             Arg::with_name("INPUT")
-                .help("The word that you seek")
+                .help("The word that yo&u seek")
                 .required(true)
                 .index(1),
         )
@@ -98,6 +97,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let force = matches.occurrences_of("force") == 1;
     let api = api::to_enum(matches.value_of("api").unwrap_or_else(|| ""));
+    let file_words = &cache::get_file_words(&api);
+    let file_api = &cache::get_file_api(&api);
 
     let word = matches.value_of("INPUT").unwrap();
     let mut is_cache = false;
@@ -105,10 +106,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut exist_words = String::new();
     let mut is_file_exist = false;
 
-    if cache::check_file_exist("words.bin") {
+    if cache::check_file_exist(file_words) {
         is_file_exist = true;
 
-        exist_words = cache::load("words.bin");
+        exist_words = cache::load(file_words);
 
         if !force {
             let words: Vec<String> = serde_json::from_str(&exist_words.to_string())?;
@@ -124,28 +125,26 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     if !force && is_cache {
-        let cache = cache::load("api.bin");
-        let cache_api: Vec<model::DictionaryAPI> = serde_json::from_str(&cache)?;
+        let cache = cache::load(file_api);
 
-        display::display(&cache_api[cache_index], case);
+        display::display(&cache, case, cache_index, &api, true).unwrap();
     } else {
-        let body: String = api::call(word, api).await?;
-        let apis: Vec<model::DictionaryAPI> = serde_json::from_str(&body)?;
+        let body: String = api::call(word, &api).await?;
 
-        display::display(&apis[0], case);
+        display::display(&body, case, 0, &api, false).unwrap();
 
         let cache_api = if is_file_exist {
             exist_words = format!("{},\"{}\"]", &exist_words[0..exist_words.len() - 1], word);
 
-            let cache = cache::load("api.bin");
-            format!("{},{}", &cache[0..cache.len() - 1], &body[1..body.len()])
+            let cache = cache::load(file_api);
+            format!("[{},{}]", &cache[1..cache.len() - 2], &body[1..body.len()])
         } else {
             exist_words = format!("[\"{}\"]", word);
-            body
+            format!("[{}]", body)
         };
 
-        cache::save(&exist_words, "words.bin");
-        cache::save(&cache_api, "api.bin");
+        cache::save(&exist_words, file_words);
+        cache::save(&cache_api, file_api);
     }
 
     Ok(())

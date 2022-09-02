@@ -1,5 +1,21 @@
 use std::env;
 
+use crate::model;
+
+pub fn get_file_words(api: &model::Api) -> String {
+    match api {
+        model::Api::Oxford => "words-oxford.bin".to_string(),
+        _ => "words.bin".to_string(),
+    }
+}
+
+pub fn get_file_api(api: &model::Api) -> String {
+    match api {
+        model::Api::Oxford => "api-oxford.bin".to_string(),
+        _ => "api.bin".to_string(),
+    }
+}
+
 fn create_not_exist_path(path: &String) {
     use colored::Colorize;
     if !std::path::Path::new(&path).exists() {

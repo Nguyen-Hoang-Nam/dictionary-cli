@@ -1,4 +1,5 @@
-mod free;
+pub mod free;
+pub mod oxford;
 
 use crate::{error, model};
 
@@ -11,9 +12,10 @@ pub fn to_enum(str: &str) -> model::Api {
     }
 }
 
-pub async fn call(word: &str, api: model::Api) -> Result<String, Box<dyn std::error::Error>> {
+pub async fn call(word: &str, api: &model::Api) -> Result<String, Box<dyn std::error::Error>> {
     match api {
         model::Api::Free => free::call(word).await,
+        model::Api::Oxford => oxford::call(word).await,
         _ => Err(Box::new(error::ApiNotFoundError)),
     }
 }
