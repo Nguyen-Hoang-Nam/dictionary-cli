@@ -10,10 +10,19 @@ Find definition of words in terminal
 $ cargo install --git https://github.com/Nguyen-Hoang-Nam/dictionary-cli
 ```
 
-If you want man page when run
+If you want man page when run.
 
 ```text
 bash man.sh
+```
+
+### Oxford dictionary
+
+Oxford dictionary need 2 environment variables to work.
+
+```bash
+export OXFORD_APP_ID=id
+export OXFORD_APP_KEY=key
 ```
 
 ## Usage
@@ -46,8 +55,9 @@ something (/ˈsəmˌθɪŋ/):
 ## TODO
 
 - [ ] Support download sound
-- [ ] Support other dictionary APIs
-- [ ] Config cache file's directory
+- [ ] Support google translate api
+- [ ] Update cache file
+- [ ] Configure cache file's directory
 - [ ] Support completion for zsh
 
 ## Contributing
