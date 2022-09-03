@@ -19,3 +19,8 @@ pub async fn call(word: &str, api: &model::Api) -> Result<String, Box<dyn std::e
         _ => Err(Box::new(error::ApiNotFoundError)),
     }
 }
+
+pub fn list_api() {
+    println!("_ free  \t\tFree dictionary api");
+    println!("_ oxford\t\tOxford dictionary");
+}

@@ -50,6 +50,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .help("Force find word in web instead of cache"),
         )
         .arg(
+            Arg::with_name("list-api")
+                .long("list-api")
+                .help("List all supported api"),
+        )
+        .arg(
             Arg::with_name("api")
                 .long("api")
                 .help("free | oxford | google")
@@ -58,10 +63,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .arg(
             Arg::with_name("INPUT")
                 .help("The word that yo&u seek")
-                .required(true)
                 .index(1),
         )
         .get_matches();
+
+    if matches.occurrences_of("list-api") == 1 {
+        api::list_api();
+        return Ok(());
+    };
 
     let case = 0;
 
@@ -102,7 +111,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let file_words = &cache::get_file_words(&api);
     let file_api = &cache::get_file_api(&api);
 
-    let word = matches.value_of("INPUT").unwrap();
+    let word = match matches.value_of("INPUT") {
+        Some(w) => w,
+        None => panic!("Missing word"),
+    };
+
     let mut is_cache = false;
     let mut cache_index = 0;
     let mut exist_words = String::new();

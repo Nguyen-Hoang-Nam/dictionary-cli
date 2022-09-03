@@ -4,6 +4,23 @@ Find definition of words in terminal
 
 ![Main](https://raw.githubusercontent.com/Nguyen-Hoang-Nam/readme-image/main/dictionary-cli/dictionary-cli.png)
 
+## Supported
+
+### Free dictionary
+
+You can donate for their work here [freeDictionaryAPI](https://github.com/meetDeveloper/freeDictionaryAPI).
+
+### Oxford dictionary
+
+You need to create an account in [here](https://developer.oxforddictionaries.com/)
+then request a credential key before use this feature. After that, create 2
+environments like below and fill with your credential key.
+
+```bash
+export OXFORD_APP_ID=id
+export OXFORD_APP_KEY=key
+```
+
 ## Installation
 
 ```text
@@ -14,15 +31,6 @@ If you want man page when run.
 
 ```text
 bash man.sh
-```
-
-### Oxford dictionary
-
-Oxford dictionary need 2 environment variables to work.
-
-```bash
-export OXFORD_APP_ID=id
-export OXFORD_APP_KEY=key
 ```
 
 ## Usage
@@ -52,10 +60,28 @@ $ dictionary-cli something -p
 something (/ˈsəmˌθɪŋ/):
 ```
 
+### List supported API
+
+```text
+$ dictionary-cli --list-api
+```
+
+### Use other API
+
+To change api use flag `--api`, the default value is `free`.
+
+```text
+$ dictionary-cli --api oxford something
+```
+
 ## TODO
 
 - [ ] Support download sound
-- [ ] Support google translate api
+- [ ] Support [Collins API](https://www.collinsdictionary.com/collins-api)
+- [ ] Support [Merriam Webster API](https://dictionaryapi.com/products/api-learners-dictionary)
+- [ ] Support [Urban API](https://api.urbandictionary.com/v0)
+- [ ] Support [Yandex API](https://yandex.com/dev/dictionary/)
+- [ ] Support [Cambridge](https://dictionary-api.cambridge.org/)
 - [ ] Update cache file
 - [ ] Configure cache file's directory
 - [ ] Support completion for zsh
