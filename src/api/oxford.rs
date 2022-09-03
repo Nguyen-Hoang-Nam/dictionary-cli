@@ -31,7 +31,7 @@ pub async fn call(word: &str) -> Result<String, Box<dyn std::error::Error>> {
         reqwest::StatusCode::OK => {
             let body = res.text().await?;
 
-            Ok(body)
+            Ok(format!("[{}]", body))
         }
         _ => Err(Box::new(error::NotFoundError)),
     }

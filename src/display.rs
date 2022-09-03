@@ -14,10 +14,9 @@ pub fn display(
     case: u8,
     index: usize,
     api: &model::Api,
-    is_cache: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     match api {
-        model::Api::Oxford => api::oxford::display::display(body, case, index, is_cache),
-        _ => api::free::display::display(body, case, index, is_cache),
+        model::Api::Oxford => api::oxford::display::display(body, case, index),
+        _ => api::free::display::display(body, case, index),
     }
 }
