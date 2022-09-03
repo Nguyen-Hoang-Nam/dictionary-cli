@@ -1,5 +1,3 @@
-use std::env;
-
 use crate::model;
 
 pub fn get_file_words(api: &model::Api) -> String {
@@ -16,13 +14,13 @@ pub fn get_file_api(api: &model::Api) -> String {
     }
 }
 
-fn create_not_exist_path(path: &String) {
+fn create_not_exist_path(path: &std::path::Path) {
     use colored::Colorize;
-    if !std::path::Path::new(&path).exists() {
+    if !path.exists() {
         std::fs::create_dir(path).unwrap_or_else(|e| {
             panic!(
                 "Can not create directory at {} due to error {}.",
-                path.magenta(),
+                path.as_os_str().to_str().unwrap(),
                 e.to_string().red()
             )
         });
@@ -30,43 +28,13 @@ fn create_not_exist_path(path: &String) {
 }
 
 fn cache_path(file_name: &str) -> String {
-    let os = env::consts::OS;
-    let mut result = String::new();
+    let mut path = dirs::cache_dir().unwrap();
+    path.push("dictionary-cli");
 
-    if os == "linux" {
-        match env::var("XDG_CACHE_HOME") {
-            Ok(cache_directory) => {
-                let path = format!("{}/dictionary-cli", cache_directory);
-                create_not_exist_path(&path);
+    create_not_exist_path(&path);
+    path.push(file_name);
 
-                result = format!("{}/{}", path, file_name);
-            }
-            Err(..) => {
-                let path = format!("{}/.dictionary-cli", env::var("HOME").unwrap());
-                create_not_exist_path(&path);
-
-                result = format!("{}/{}", path, file_name)
-            }
-        }
-    } else if os == "windows" {
-        let path = "%USERPROFILE\\AppData\\dictionary-cli".to_string();
-        create_not_exist_path(&path);
-
-        result = format!("{}\\{}", path, file_name)
-    } else if os == "macos" {
-        let path = format!(
-            "{}/{}",
-            dirs::cache_dir()
-                .expect("Cache dir not found")
-                .display()
-                .to_string(),
-            "dictionary_cli".to_string()
-        );
-        create_not_exist_path(&path);
-        result = format!("{}/{}", path, file_name)
-    }
-
-    result
+    path.into_os_string().into_string().unwrap()
 }
 
 pub fn check_file_exist(file_name: &str) -> bool {
