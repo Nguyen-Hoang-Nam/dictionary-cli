@@ -1,3 +1,5 @@
+#![warn(clippy::nursery)]
+
 mod api;
 mod cache;
 mod display;
@@ -127,20 +129,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     if !force && is_cache {
         let cache = cache::load(file_api);
 
-        display::display(&cache, case, cache_index, &api, true).unwrap();
+        display::display(&cache, case, cache_index, &api).unwrap();
     } else {
         let body: String = api::call(word, &api).await?;
 
-        display::display(&body, case, 0, &api, false).unwrap();
+        display::display(&body, case, 0, &api).unwrap();
 
         let cache_api = if is_file_exist {
             exist_words = format!("{},\"{}\"]", &exist_words[0..exist_words.len() - 1], word);
 
             let cache = cache::load(file_api);
-            format!("[{},{}]", &cache[1..cache.len() - 2], &body[1..body.len()])
+            format!("{},{}", &cache[0..cache.len() - 1], &body[1..body.len()])
         } else {
             exist_words = format!("[\"{}\"]", word);
-            format!("[{}]", body)
+            body
         };
 
         cache::save(&exist_words, file_words);

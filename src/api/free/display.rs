@@ -60,12 +60,7 @@ fn antonyms(antonyms: &Option<Vec<String>>) {
     }
 }
 
-pub fn display(
-    body: &String,
-    case: u8,
-    index: usize,
-    _: bool,
-) -> Result<(), Box<dyn std::error::Error>> {
+pub fn display(body: &String, case: u8, index: usize) -> Result<(), Box<dyn std::error::Error>> {
     let apis: Vec<api::free::model::DictionaryAPI> = serde_json::from_str(&body)?;
     let word = &apis[index];
 

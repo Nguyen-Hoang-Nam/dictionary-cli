@@ -11,42 +11,38 @@ fn definitions(definitions: &Vec<String>) {
 
 fn examples(examples: &Vec<api::oxford::model::Example>) {
     for example in examples.iter() {
-        let exampe_str = format!("\te.g: {}", example.text);
+        let exampe_str = format!("\n\te.g: {}", example.text);
         display::write_color(&exampe_str, termcolor::Color::White).expect("Not show color.")
     }
 }
 
-fn synonyms(synonyms: &Vec<api::oxford::model::Synonym>) {
-    let mut synonym_str = String::new();
-    for synonym in synonyms.iter() {
-        if !synonym_str.is_empty() {
-            synonym_str = format!("{}, {}", synonym_str, synonym.text)
-        } else {
-            synonym_str = synonym.text.to_string()
-        }
-    }
+fn synonyms(value: &Option<Vec<api::oxford::model::Synonym>>) {
+    match value {
+        Some(synonyms) => {
+            let mut synonym_str = String::new();
+            for synonym in synonyms.iter() {
+                if !synonym_str.is_empty() {
+                    synonym_str = format!("{}, {}", synonym_str, synonym.text)
+                } else {
+                    synonym_str = synonym.text.to_string()
+                }
+            }
 
-    if synonym_str.len() > 0 {
-        display::write_color("\n\n\tSimilar: ", termcolor::Color::Yellow).expect("Not show color.");
-        synonym_str = format!("{} \n", synonym_str);
-        display::write_color(&synonym_str, termcolor::Color::White).expect("Not show color.")
+            if synonym_str.len() > 0 {
+                display::write_color("\n\n\tSimilar: ", termcolor::Color::Yellow)
+                    .expect("Not show color.");
+                synonym_str = format!("{} \n", synonym_str);
+                display::write_color(&synonym_str, termcolor::Color::White)
+                    .expect("Not show color.")
+            }
+        }
+
+        None => print!(""),
     }
 }
 
-pub fn display(
-    body: &String,
-    case: u8,
-    index: usize,
-    is_cache: bool,
-) -> Result<(), Box<dyn std::error::Error>> {
-    let raw_response: String = if is_cache {
-        body.to_string()
-    } else {
-        let value = format!("[{}]", &body);
-        value
-    };
-
-    let responses: &Vec<api::oxford::model::Response> = &serde_json::from_str(&raw_response)?;
+pub fn display(body: &String, case: u8, index: usize) -> Result<(), Box<dyn std::error::Error>> {
+    let responses: &Vec<api::oxford::model::Response> = &serde_json::from_str(&body)?;
     let response: &api::oxford::model::Response = &responses[index];
 
     let result: &Vec<api::oxford::model::OResult> = &response.results;

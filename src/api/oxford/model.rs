@@ -40,13 +40,20 @@ pub struct Example {
 
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
+pub struct Construction {
+    pub text: String,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct Sense {
+    pub constructions: Option<Vec<Construction>>,
     pub definitions: Vec<String>,
     pub examples: Vec<Example>,
     pub id: String,
     pub short_definitions: Vec<String>,
-    pub subsenses: Vec<Subsense>,
-    pub synonyms: Vec<Synonym>,
+    pub subsenses: Option<Vec<Subsense>>,
+    pub synonyms: Option<Vec<Synonym>>,
     pub thesaurus_links: Option<Vec<ThesaurusLink>>,
 }
 
@@ -69,6 +76,7 @@ pub struct LexicalCategory {
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Entry {
+    pub etymologies: Option<Vec<String>>,
     pub pronunciations: Vec<Pronunciation>,
     pub senses: Vec<Sense>,
 }
@@ -83,7 +91,7 @@ pub struct Derivative {
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct LexicalEntry {
-    pub derivatives: Vec<Derivative>,
+    pub derivatives: Option<Vec<Derivative>>,
     pub entries: Vec<Entry>,
     pub lexical_category: LexicalCategory,
 }
