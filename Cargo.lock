@@ -843,9 +843,9 @@ checksum = "4501abdff3ae82a1c1b477a17252eb69cee9e66eb915c1abaa4f44d873df9f09"
 
 [[package]]
 name = "savefile"
-version = "0.16.2"
+version = "0.17.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d93be8883355c0b3114f6e079f398d993f613b7ff839dfc49ae6a3a058e4fcbd"
+checksum = "9999b2784e4b43e5130a0d5ba794df81de09b3155b10e5879db9e8dc0d38448a"
 dependencies = [
  "arrayvec",
  "bit-set",
